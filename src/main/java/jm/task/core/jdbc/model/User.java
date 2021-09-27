@@ -20,6 +20,7 @@ public class User {
 
     public User() {
 
+
     }
 
     public User(String name, String lastName, Byte age) {
@@ -58,5 +59,15 @@ public class User {
 
     public void setAge(Byte age) {
         this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", age=" + age +
+                '}';
     }
 }

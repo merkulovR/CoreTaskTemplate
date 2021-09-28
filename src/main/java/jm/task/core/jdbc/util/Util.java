@@ -12,11 +12,8 @@ public class Util {
 
 
     public Connection getConnection() throws SQLException, ClassNotFoundException {
-        Connection connection;
+        Class.forName(DRIVER);
 
-            Class.forName(DRIVER);
-            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-
-        return connection;
+        return DriverManager.getConnection(URL, USERNAME, PASSWORD);
     }
 }

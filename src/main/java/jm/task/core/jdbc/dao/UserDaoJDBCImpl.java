@@ -13,7 +13,7 @@ public class UserDaoJDBCImpl implements UserDao {
     }
 
     public void createUsersTable() {
-        String sql = "CREATE TABLE users (" +
+        String sql = "CREATE TABLE IF NOT EXISTS users (" +
                 "id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, " +
                 "name VARCHAR(20) NOT NULL, " +
                 "lastName VARCHAR(20) NOT NULL, " +
@@ -22,7 +22,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
         try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.executeUpdate();
-        } catch (SQLException | ClassNotFoundException ignored) {
+        } catch (SQLException ignored) {
         }
     }
 
@@ -31,7 +31,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
         try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.executeUpdate();
-        } catch (SQLException | ClassNotFoundException ignored) {
+        } catch (SQLException ignored) {
         }
     }
 
@@ -44,7 +44,7 @@ public class UserDaoJDBCImpl implements UserDao {
             ps.setInt(3, age);
             ps.executeUpdate();
             System.out.println("User с именем - " + name + " добавлен в базу данных");
-        } catch (SQLException | ClassNotFoundException ignored) {
+        } catch (SQLException ignored) {
         }
     }
 
@@ -54,7 +54,7 @@ public class UserDaoJDBCImpl implements UserDao {
         try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setLong(1, id);
             ps.executeUpdate();
-        } catch (SQLException | ClassNotFoundException ignored) {
+        } catch (SQLException ignored) {
         }
     }
 
@@ -72,7 +72,7 @@ public class UserDaoJDBCImpl implements UserDao {
                 users.get(users.size() - 1).setId(resultSet.getLong("id"));
             }
 
-        } catch (SQLException | ClassNotFoundException ignored) {
+        } catch (SQLException ignored) {
         }
 
         return users;
@@ -83,7 +83,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
         try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.executeUpdate();
-        } catch (SQLException | ClassNotFoundException ignored) {
+        } catch (SQLException ignored) {
         }
     }
 }

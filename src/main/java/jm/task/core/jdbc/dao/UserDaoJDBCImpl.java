@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoJDBCImpl implements UserDao {
-    private Util util = new Util();
+    private final Util util = new Util();
 
     public UserDaoJDBCImpl() {
     }
@@ -23,37 +23,24 @@ public class UserDaoJDBCImpl implements UserDao {
                     "name VARCHAR(20) NOT NULL, " +
                     "lastName VARCHAR(20) NOT NULL, " +
                     "age TINYINT NOT NULL)");
-
-            try {
-                con.commit();
-            } catch (SQLException e) {
-                try {
-                    con.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
+            con.commit();
         } catch (SQLException e) {
             try {
                 con.rollback();
             } catch (SQLException ex) {
-                e.printStackTrace();
+                System.err.println("Неудачный rollback.");
             }
         } finally {
             try {
                 if (statement != null) {
                     statement.close();
                 }
-            } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Statement!");
-            }
 
-            try {
                 if (con != null) {
                     con.close();
                 }
             } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Connection!");
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
             }
         }
     }
@@ -65,37 +52,24 @@ public class UserDaoJDBCImpl implements UserDao {
         try {
             statement = con.createStatement();
             statement.executeUpdate("DROP TABLE IF EXISTS users");
-
-            try {
-                con.commit();
-            } catch (SQLException e) {
-                try {
-                    con.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
+            con.commit();
         } catch (SQLException e) {
             try {
                 con.rollback();
             } catch (SQLException ex) {
-                e.printStackTrace();
+                System.err.println("Неудачный rollback.");
             }
         } finally {
             try {
                 if (statement != null) {
                     statement.close();
                 }
-            } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Statement!");
-            }
 
-            try {
                 if (con != null) {
                     con.close();
                 }
             } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Connection!");
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
             }
         }
     }
@@ -110,38 +84,25 @@ public class UserDaoJDBCImpl implements UserDao {
             ps.setString(2, lastName);
             ps.setInt(3, age);
             ps.executeUpdate();
-
-            try {
-                con.commit();
-                System.out.println("User с именем - " + name + " добавлен в базу данных");
-            } catch (SQLException e) {
-                try {
-                    con.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
+            con.commit();
+            System.out.println("User с именем - " + name + " добавлен в базу данных");
         } catch (SQLException e) {
             try {
                 con.rollback();
             } catch (SQLException ex) {
-                e.printStackTrace();
+                System.err.println("Неудачный rollback.");
             }
         } finally {
             try {
                 if (ps != null) {
                     ps.close();
                 }
-            } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Statement!");
-            }
 
-            try {
                 if (con != null) {
                     con.close();
                 }
             } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Connection!");
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
             }
         }
     }
@@ -154,37 +115,24 @@ public class UserDaoJDBCImpl implements UserDao {
             ps = con.prepareStatement("DELETE FROM users WHERE id = (?)");
             ps.setLong(1, id);
             ps.executeUpdate();
-
-            try {
-                con.commit();
-            } catch (SQLException e) {
-                try {
-                    con.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
+            con.commit();
         } catch (SQLException e) {
             try {
                 con.rollback();
             } catch (SQLException ex) {
-                e.printStackTrace();
+                System.err.println("Неудачный rollback.");
             }
         } finally {
             try {
                 if (ps != null) {
                     ps.close();
                 }
-            } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Statement!");
-            }
 
-            try {
                 if (con != null) {
                     con.close();
                 }
             } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Connection!");
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
             }
         }
     }
@@ -201,14 +149,19 @@ public class UserDaoJDBCImpl implements UserDao {
             try {
                 resultSet = ps.executeQuery();
 
-
                 while (resultSet.next()) {
                     users.add(new User(resultSet.getString("name"),
                             resultSet.getString("lastName"),
                             resultSet.getByte("age")));
                     users.get(users.size() - 1).setId(resultSet.getLong("id"));
                 }
-            } catch (SQLException ignored) {
+            } catch (SQLException e) {
+                try {
+                    System.err.println("Не удалось получить список Users!");
+                    con.rollback();
+                } catch (SQLException ex) {
+                    System.err.println("Неудачный rollback.");
+                }
             } finally {
                 try {
                     if (resultSet != null) {
@@ -223,23 +176,19 @@ public class UserDaoJDBCImpl implements UserDao {
             try {
                 con.rollback();
             } catch (SQLException ex) {
-                e.printStackTrace();
+                System.err.println("Неудачный rollback.");
             }
         } finally {
             try {
                 if (ps != null) {
                     ps.close();
                 }
-            } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Statement!");
-            }
 
-            try {
                 if (con != null) {
                     con.close();
                 }
             } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Connection!");
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
             }
         }
 
@@ -253,37 +202,24 @@ public class UserDaoJDBCImpl implements UserDao {
         try {
             ps = con.prepareStatement("TRUNCATE TABLE users");
             ps.executeUpdate();
-
-            try {
-                con.commit();
-            } catch (SQLException e) {
-                try {
-                    con.rollback();
-                } catch (SQLException ex) {
-                    ex.printStackTrace();
-                }
-            }
+            con.commit();
         } catch (SQLException e) {
             try {
                 con.rollback();
             } catch (SQLException ex) {
-                e.printStackTrace();
+                System.err.println("Неудачный rollback.");
             }
         } finally {
             try {
                 if (ps != null) {
                     ps.close();
                 }
-            } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Statement!");
-            }
 
-            try {
                 if (con != null) {
                     con.close();
                 }
             } catch (SQLException e) {
-                System.err.println("Не удалось закрыть Connection!");
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
             }
         }
     }

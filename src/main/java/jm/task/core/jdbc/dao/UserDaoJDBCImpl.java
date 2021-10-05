@@ -7,83 +7,220 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoJDBCImpl implements UserDao {
-    private Util util = new Util();
+    private final Util util = new Util();
 
     public UserDaoJDBCImpl() {
     }
 
     public void createUsersTable() {
-        String sql = "CREATE TABLE users (" +
-                "id INT PRIMARY KEY NOT NULL AUTO_INCREMENT, " +
-                "name VARCHAR(20) NOT NULL, " +
-                "lastName VARCHAR(20) NOT NULL, " +
-                "age INT(3) NOT NULL)";
+        Connection con = util.getConnection();
+        Statement statement = null;
 
+        try {
+            statement = con.createStatement();
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS users (" +
+                    "id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT, " +
+                    "name VARCHAR(20) NOT NULL, " +
+                    "lastName VARCHAR(20) NOT NULL, " +
+                    "age TINYINT NOT NULL)");
+            con.commit();
+        } catch (SQLException e) {
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Неудачный rollback.");
+            }
+        } finally {
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
 
-        try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.executeUpdate();
-        } catch (SQLException | ClassNotFoundException ignored) {
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
+            }
         }
     }
 
     public void dropUsersTable() {
-        String sql = "DROP TABLE users";
+        Connection con = util.getConnection();
+        Statement statement = null;
 
-        try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.executeUpdate();
-        } catch (SQLException | ClassNotFoundException ignored) {
+        try {
+            statement = con.createStatement();
+            statement.executeUpdate("DROP TABLE IF EXISTS users");
+            con.commit();
+        } catch (SQLException e) {
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Неудачный rollback.");
+            }
+        } finally {
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
+            }
         }
     }
 
     public void saveUser(String name, String lastName, byte age) {
-        String sql = "INSERT INTO users (name, lastName, age) VALUES (?, ?, ?)";
+        Connection con = util.getConnection();
+        PreparedStatement ps = null;
 
-        try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+        try {
+            ps = con.prepareStatement("INSERT INTO users (name, lastName, age) VALUES (?, ?, ?)");
             ps.setString(1, name);
             ps.setString(2, lastName);
             ps.setInt(3, age);
             ps.executeUpdate();
+            con.commit();
             System.out.println("User с именем - " + name + " добавлен в базу данных");
-        } catch (SQLException | ClassNotFoundException ignored) {
+        } catch (SQLException e) {
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Неудачный rollback.");
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
+            }
         }
     }
 
     public void removeUserById(long id) {
-        String sql = "DELETE FROM users WHERE id = (?)";
+        Connection con = util.getConnection();
+        PreparedStatement ps = null;
 
-        try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+        try {
+            ps = con.prepareStatement("DELETE FROM users WHERE id = (?)");
             ps.setLong(1, id);
             ps.executeUpdate();
-        } catch (SQLException | ClassNotFoundException ignored) {
+            con.commit();
+        } catch (SQLException e) {
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Неудачный rollback.");
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
+            }
         }
     }
 
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        String query = "SELECT * FROM users";
+        Connection con = util.getConnection();
+        ResultSet resultSet = null;
+        PreparedStatement ps = null;
 
-        try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(query)) {
-            ResultSet resultSet = ps.executeQuery(query);
+        try {
+            ps = con.prepareStatement("SELECT * FROM users");
 
-            while (resultSet.next()) {
-                users.add(new User(resultSet.getString("name"),
-                        resultSet.getString("lastName"),
-                        resultSet.getByte("age")));
-                users.get(users.size() - 1).setId(resultSet.getLong("id"));
+            try {
+                resultSet = ps.executeQuery();
+
+                while (resultSet.next()) {
+                    users.add(new User(resultSet.getString("name"),
+                            resultSet.getString("lastName"),
+                            resultSet.getByte("age")));
+                    users.get(users.size() - 1).setId(resultSet.getLong("id"));
+                }
+            } catch (SQLException e) {
+                try {
+                    System.err.println("Не удалось получить список Users!");
+                    con.rollback();
+                } catch (SQLException ex) {
+                    System.err.println("Неудачный rollback.");
+                }
+            } finally {
+                try {
+                    if (resultSet != null) {
+                        resultSet.close();
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Не удалось закрыть ResultSet!");
+                }
             }
 
-        } catch (SQLException | ClassNotFoundException ignored) {
+        } catch (SQLException e) {
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Неудачный rollback.");
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
+            }
         }
 
         return users;
     }
 
     public void cleanUsersTable() {
-        String sql = "DELETE FROM users WHERE id > 0";
+        Connection con = util.getConnection();
+        PreparedStatement ps = null;
 
-        try (Connection con = util.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+        try {
+            ps = con.prepareStatement("TRUNCATE TABLE users");
             ps.executeUpdate();
-        } catch (SQLException | ClassNotFoundException ignored) {
+            con.commit();
+        } catch (SQLException e) {
+            try {
+                con.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Неудачный rollback.");
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+
+                if (con != null) {
+                    con.close();
+                }
+            } catch (SQLException e) {
+                System.err.println("Не удалось закрыть Statement и/или Connection!");
+            }
         }
     }
 }
